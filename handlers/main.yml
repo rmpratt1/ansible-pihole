@@ -1,0 +1,13 @@
+---
+# handlers file for pi-hole
+- name: restart unbound
+  service:
+    name: unbound
+    state: restarted
+    enabled: yes
+  become: yes
+
+- name: reload ufw
+  ufw:
+    state: reloaded
+  become: yes

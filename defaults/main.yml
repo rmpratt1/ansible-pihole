@@ -1,0 +1,45 @@
+---
+# defaults file for pi-hole
+
+ufw_rules:
+  - {rule: "allow", port: "22", proto: "tcp"}
+  - {rule: "allow", port: "80", proto: "tcp"}
+  - {rule: "allow", port: "53", proto: "tcp"}
+  - {rule: "allow", port: "53", proto: "udp"}
+  - {rule: "allow", port: "67", proto: "tcp"}
+  - {rule: "allow", port: "67", proto: "udp"}
+  - {rule: "allow", port: "546:547", proto: "udp"}
+
+pihole_webinteface_password: "pi-hole"
+pihole_interface: "{{ ansible_default_ipv4.interface }}"
+pihole_ipv4_address: "{{ (ansible_default_ipv4.address + '/' + ansible_default_ipv4.netmask) | ipaddr('network/prefix') }}"
+pihole_ipv6_address: ""
+pihole_query_logging: "true"
+pihole_install_web_server: "true"
+pihole_dnsmasq_listening: "single"
+pihole_dns_1: "1.1.1.1"
+pihole_dns_2: "1.0.0.1"
+pihole_dns_3: "2606:4700:4700::1111"
+pihole_dns_4: "2606:4700:4700::1001"
+pihole_dns_fqdn_required: "true"
+pihole_dns_bogus_priv: "true"
+pihole_dnssec: "true"
+pihole_temperatureunit: "C"
+pihole_webuiboxedlayout: "boxed"
+pihole_api_exclude_domains:
+pihole_api_exclude_clients:
+pihole_api_query_log_show: "all"
+pihole_api_privacy_mode: "false"
+pihole_dhcp_server_enabled: "true"
+pihole_dhcp_starting_address: "{{ pihole_ipv4_address | ipaddr('next_usable') }}"
+pihole_dhcp_ending_address: "{{ pihole_ipv4_address | ipaddr('last_usable') }}"
+pihole_dhcp_router_address: "{{ ansible_default_ipv4.gateway }}"
+pihole_dhcp_lease_time: "24"
+# pihole_domain: "{{ ansible_domain }}"
+pihole_domain: ""
+pihole_dhcp_ipv6: "false"
+pihole_dhcp_rapid_commit: "true"
+pihole_conditional_forwarding: "false"
+pihole_install_web_interface: "true"
+pihole_lighttpd_enabled: "true"
+pihole_blocking_enabled: "true"

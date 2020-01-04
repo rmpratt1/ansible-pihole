@@ -1,0 +1,103 @@
+---
+# tasks file for pi-hole
+- name: Install Pi-hole required packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+  tags:
+    - pihole
+    - apt
+
+- name: Check Pi-hole installation status
+  stat:
+    path: "/usr/local/bin/pihole"
+  register: pihole
+  tags: pihole
+
+- name: Clone Pi-hole repository
+  git:
+    repo: "https://github.com/pi-hole/pi-hole.git"
+    dest: "/tmp/pi-hole"
+    update: yes
+    force: yes
+  when:
+    - not pihole.stat.exists
+  tags: pihole
+
+- name: Create Pi-hole directory
+  file:
+    path: "/etc/pihole/"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  become: yes
+  tags: pihole
+
+- name: Create Pi-hole unattended install setup file
+  template:
+    src: pi-hole/setupVars.conf.j2
+    dest: /etc/pihole/setupVars.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - not pihole.stat.exists
+  tags: pihole
+
+- name: Install Pi-hole
+  shell:
+    chdir: "/tmp/pi-hole/automated\ install/"
+    cmd: "bash basic-install.sh --unattended"
+  become: yes
+  when:
+    - not pihole.stat.exists
+  tags: pihole
+
+# Credit: hannseman.raspbian
+- name: configure ufw rules
+  ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    from_ip: "{{ item.from_ip|default('any') }}"
+  with_items:
+    - "{{ ufw_rules }}"
+  when: ufw_rules|length > 0
+  notify:
+    - reload ufw
+  tags:
+    - pihole
+    - ufw
+
+- name: enable ufw
+  ufw:
+    state: enabled
+  tags:
+    - pihole
+    - ufw
+
+- name: Check Unbound installation status
+  stat:
+    path: "/etc/unbound/unbound.conf.d/"
+  register: unbound
+  tags:
+    - pihole
+    - unbound
+
+- name: Create Pi-hole unbound config file
+  template:
+    src: unbound/pi-hole.conf.j2
+    dest: /etc/unbound/unbound.conf.d/pi-hole.conf
+    mode: 0644
+    backup: yes
+    force: yes
+  notify: restart_unbound
+  become: yes
+  when:
+    - unbound.stat.exists
+  tags:
+    - pihole
+    - unbound
+
+# Add blocklists
